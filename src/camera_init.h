@@ -50,18 +50,18 @@ static constexpr camera_config_t camera_config {CAMERA_PWR_PIN,
                                       LEDC_TIMER_0,
                                       LEDC_CHANNEL_0,
                                       PIXFORMAT_JPEG,
-                                      FRAMESIZE_UXGA,
+                                      FRAMESIZE_VGA,
                                       8,
-                                      8,
+                                      1,
                                       CAMERA_FB_IN_PSRAM,
-                                      CAMERA_GRAB_WHEN_EMPTY
+                                      CAMERA_GRAB_LATEST
 };
 
-esp_err_t init_camera() {
+inline esp_err_t init_camera() {
     pinMode(CAMERA_PWR_PIN, OUTPUT);
     digitalWrite(CAMERA_PWR_PIN, LOW);
 
-    esp_err_t error_code = esp_camera_init(&camera_config);
+    const esp_err_t error_code = esp_camera_init(&camera_config);
     if (error_code != ESP_OK) {
         //log some failure stuff
 
@@ -70,13 +70,17 @@ esp_err_t init_camera() {
     return error_code;
 }
 
-esp_err_t camera_capture(camera_fb_t& retriever) {
-    camera_fb_t* frameBuffer = esp_camera_fb_get();
+inline esp_err_t camera_capture(camera_fb_t& retriever, unsigned int& length) {
+    camera_fb_t* frameBuffer = esp_camera_fb_get(); //JPEG frames start with FF D8 and end with FF D9, anything after FF D9 is just trash
+    Serial.println("buffer transfer complete");
     if (frameBuffer == nullptr) {
         ESP_LOGE("fail", "Failed to obtain a frame, did you call init_camera() ?");
         return ESP_FAIL;
     }
+    length = frameBuffer->len;
     retriever = *frameBuffer;
+
+    Serial.println("Buffer copy complete");
     esp_camera_fb_return(frameBuffer);
     return ESP_OK;
 }
