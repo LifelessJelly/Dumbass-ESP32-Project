@@ -139,8 +139,8 @@ PubSubClient client;
 
 void setup() {
     Serial.begin(115200);
-    std::array plots {0.0, -2.1, 3.4, 6.3, -1.8};
-    auto splineGraph = CubicSplineSet(10, 10, plots);
+    std::array plots {0, 832, 1806, 2865, 4095};
+    auto splineGraph = CubicSplineSet(0.825, 0, plots);
     analogReadResolution(12);
 
     constexpr char* SSID = "Samsnug";
